@@ -1,28 +1,28 @@
-# Premium Gallery Plugin for Filament
+# Premium Gallery Plugin para Filament
 
-A powerful, customizable, and user-friendly image gallery component for Filament PHP 4.x/3.x.
+Un componente de galería de imágenes potente, personalizable y fácil de usar para Filament PHP 4.x/3.x.
 
-## Features
+## Características
 
-- 🖼️ **Premium UI**: Modern grid layout using standard Filament design tokens.
-- ⬆️ **Manual Upload Control**: Prevents auto-uploading, allowing users to validate files before sending.
-- ⭐ **Set Primary Image**: Mark any image as the main/cover photo with a single click.
-- 👁️ **Lightbox Preview**: Built-in full-screen image viewer.
-- 📱 **Responsive**: Perfect layout on desktop, tablet, and mobile.
-- ⚡ **Optimized**: Supports image drag-and-drop and reordering.
+- 🖼️ **Interfaz Premium**: Diseño de cuadrícula moderno usando los tokens de diseño estándar de Filament.
+- ⬆️ **Control Manual de Carga**: Evita la subida automática, permitiendo validar archivos antes de enviar.
+- ⭐ **Establecer Imagen Principal**: Marca cualquier imagen como foto de portada con un solo clic.
+- 👁️ **Vista Previa en Lightbox**: Visor de imágenes a pantalla completa integrado.
+- 📱 **Responsive**: Diseño perfecto en escritorio, tablet y móvil.
+- ⚡ **Optimizado**: Soporta arrastrar y soltar (drag-and-drop) y reordenamiento.
 
-## Requirements
+## Requisitos
 
 - PHP 8.2+
-- Filament 4.x or 3.x
+- Filament 4.x o 3.x
 - Laravel 11/12
 
-## Installation
+## Instalación
 
-Since this is a private/local package, you need to install it via your `composer.json`.
+Dado que este es un paquete privado/local, necesitas instalarlo a través de tu `composer.json`.
 
-### 1. Add Repository
-Add the repository to your root `composer.json`:
+### 1. Agregar Repositorio
+Añade el repositorio a tu `composer.json` raíz:
 
 ```json
 "repositories": [
@@ -33,52 +33,53 @@ Add the repository to your root `composer.json`:
 ]
 ```
 
-### 2. Require Package
-Run the following command:
+### 2. Requerir el Paquete
+Ejecuta el siguiente comando:
 
 ```bash
 composer require inmoflow/premium-gallery
 ```
 
-## Usage
+## Uso
 
-Use the component in your Filament Resource forms (`Form $form`):
+Usa el componente en tus formularios de Recursos de Filament (`Form $form`):
 
 ```php
 use Inmoflow\PremiumGallery\Forms\Components\PremiumGalleryUpload;
 
 PremiumGalleryUpload::make('gallery')
-    ->label('Property Photos')
-    ->collection('gallery') // Optional: Spatie Media Library collection
+    ->label('Fotos de la Propiedad')
+    ->collection('gallery') // Opcional: Colección de Spatie Media Library
     ->maxFiles(10)
     ->maxSize(5120) // 5MB
     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
     ->columnSpanFull();
 ```
 
-### Handling "Primary" Image
+### Manejo de Imagen "Principal"
 
-The component automatically handles the `is_primary` custom property on Spatie Media Library items. To use it in your frontend/API:
+El componente maneja automáticamente la propiedad personalizada `is_primary` en los items de Spatie Media Library. Para usarlo en tu frontend/API:
 
 ```php
-// Get the primary image
+// Obtener la imagen principal
 $primaryImage = $record->getMedia('gallery')->firstWhere('custom_properties.is_primary', true);
 
-// Fallback to first image if no primary set
+// Fallback a la primera imagen si no hay principal
 $cover = $primaryImage ?? $record->getFirstMedia('gallery');
 ```
 
-## Security
+## Seguridad
 
-This plugin enforces:
-- Server-side strict file validation.
-- Authorization checks on media deletion (ensure your Policies allow it).
+Este plugin implementa:
+- Validación estricta de archivos en el lado del servidor.
+- Verificaciones de autorización al eliminar medios (asegúrate de que tus Policies lo permitan).
 
-## Credits
+## Créditos
 
-- InmoFlow Team
-- Built with [Filament](https://filamentphp.com)
+- Hecho por [Dany Rivera Mkt](https://about.me/danielriveraayala)
+- CEO de [Kreativos Pro](https://kreativos.pro/)
+- Construido con [Filament](https://filamentphp.com)
 
-## License
+## Licencia
 
-The MIT License (MIT).
+La Licencia MIT (MIT).
