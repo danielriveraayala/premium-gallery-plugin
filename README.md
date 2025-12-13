@@ -37,7 +37,7 @@ Añade el repositorio a tu `composer.json` raíz:
 Ejecuta el siguiente comando:
 
 ```bash
-composer require inmoflow/premium-gallery
+composer require kreativos-pro/premium-gallery
 ```
 
 ## Uso
@@ -45,7 +45,7 @@ composer require inmoflow/premium-gallery
 Usa el componente en tus formularios de Recursos de Filament (`Form $form`):
 
 ```php
-use Inmoflow\PremiumGallery\Forms\Components\PremiumGalleryUpload;
+use KreativosPro\PremiumGallery\Forms\Components\PremiumGalleryUpload;
 
 PremiumGalleryUpload::make('gallery')
     ->label('Fotos de la Propiedad')
