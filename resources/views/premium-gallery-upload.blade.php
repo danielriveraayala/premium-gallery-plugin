@@ -47,18 +47,34 @@
 
         {{-- Gallery Grid --}}
         <div class="pg-gallery-grid" x-show="totalCount > 0" style="margin-top: 1.5rem;">
-            <template x-for="image in allImages" :key="image.uniqueId">
-                <div class="pg-card" :class="{ 'pg-card-primary': image.isPrimary }">
+            <template x-for="(image, index) in allImages" :key="image.uniqueId">
+                <div class="pg-card"
+                    :class="{ 'pg-card-primary': image.isPrimary, 'pg-card-dragging': draggingIndex === index }"
+                    @dragenter="dragEnter($event, index)" @dragover="dragOver($event)" @drop="drop($event, index)">
                     <div class="pg-card-preview">
+                        {{-- PRIMARY BADGE --}}
+                        <div class="pg-primary-badge" x-show="image.isPrimary">
+                            <x-heroicon-s-star class="pg-star-icon" />
+                            <span>Principal</span>
+                        </div>
                         <img :src="image.thumbnail || image.url" class="pg-card-image">
 
-                        <div class="pg-primary-badge" x-show="image.isPrimary">★ Principal</div>
 
                         <div class="pg-loading" x-show="image.uploading">
                             <div class="pg-spinner"></div>
                         </div>
 
                         <div class="pg-card-actions" x-show="!image.uploading">
+                            {{-- Drag Handle (Now the only draggable element) --}}
+                            <div class="pg-action-btn pg-drag-handle" style="cursor: grab;" draggable="true"
+                                @dragstart="dragStart($event, index)" @dragend="dragEnd()">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.75 9h16.5m-16.5 6.75h16.5" />
+                                </svg>
+                            </div>
+
                             <button type="button" class="pg-action-btn" x-on:click="viewImage(image)">👁️</button>
                             <button type="button" class="pg-action-btn" x-show="image.type === 'saved'"
                                 x-on:click="setPrimary(image)"
@@ -237,7 +253,84 @@
                             // This uses wire:model, so removing from UI doesn't remove from upload queue easily without refreshing.
                             // For this simplified version, we just hide it.
                             this.newImages = this.newImages.filter(i => i.uniqueId !== image.uniqueId);
+                            this.newImages = this.newImages.filter(i => i.uniqueId !== image.uniqueId);
                         }
+                    },
+
+                    // Drag & Drop Reordering
+                    draggingIndex: null,
+
+                    dragStart(e, index) {
+                        this.draggingIndex = index;
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.dropEffect = 'move';
+                        e.dataTransfer.setData('text/plain', index);
+
+                        // Set proper drag image (since we drag the handle, we want the whole card to show)
+                        try {
+                            const card = e.target.closest('.pg-card');
+                            if (card) {
+                                e.dataTransfer.setDragImage(card, 20, 20);
+                            }
+                        } catch (err) {
+                            // Some browsers/environments might fail on setDragImage
+                            console.warn('setDragImage failed', err);
+                        }
+                    },
+
+                    // Live Swapping Logic
+                    dragEnter(e, index) {
+                        if (this.draggingIndex !== null && index !== this.draggingIndex) {
+                            // Swap items in the actual array to create "live" movement effect
+                            const items = [...this.allImages];
+                            const draggedItem = items[this.draggingIndex];
+
+                            // Remove from old
+                            items.splice(this.draggingIndex, 1);
+                            // Insert at new
+                            items.splice(index, 0, draggedItem);
+
+                            // Update local state without saving yet
+                            // We need to separate saved and new again to update them correctly
+                            this.savedImages = items.filter(i => i.type === 'saved');
+                            this.newImages = items.filter(i => i.type === 'new');
+
+                            // Update dragging index to track the item in its new position
+                            this.draggingIndex = index;
+                        }
+                    },
+
+                    dragOver(e) {
+                        e.preventDefault();
+                        return false;
+                    },
+
+                    drop(e, index) {
+                        e.preventDefault();
+                        this.saveOrder();
+                        this.draggingIndex = null;
+                        this.droppingIndex = null; // Cleanup old state if present
+                    },
+
+                    dragEnd() {
+                        this.draggingIndex = null;
+                    },
+
+                    saveOrder() {
+                        const ids = this.savedImages.map(i => i.id);
+                        if (ids.length === 0) return;
+
+                        fetch('/api/media/reorder', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ ids: ids })
+                        }).catch(err => {
+                            console.error('Error reordering:', err);
+                        });
                     },
 
                     setPrimary(image) {

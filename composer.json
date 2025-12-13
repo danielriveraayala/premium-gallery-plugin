@@ -1,12 +1,13 @@
 {
-    "name": "inmoflow/premium-gallery",
-    "description": "A premium gallery upload component for Filament.",
+    "name": "kreativos-pro/premium-gallery",
+    "description": "Galería Premium con carga múltiple y reordenamiento para Filament",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
-            "name": "InmoFlow Team",
-            "email": "dev@inmoflow.com"
+            "name": "Daniel Rivera",
+            "email": "danielriveraayala@kreativos.pro",
+            "role": "Developer"
         }
     ],
     "require": {
@@ -16,13 +17,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Inmoflow\\PremiumGallery\\": "src/"
+            "KreativosPro\\PremiumGallery\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Inmoflow\\PremiumGallery\\PremiumGalleryServiceProvider"
+                "KreativosPro\\PremiumGallery\\PremiumGalleryServiceProvider"
             ]
         }
     }

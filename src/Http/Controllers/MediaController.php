@@ -1,6 +1,6 @@
 <?php
 
-namespace Inmoflow\PremiumGallery\Http\Controllers;
+namespace KreativosPro\PremiumGallery\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -29,6 +29,17 @@ class MediaController extends Controller
 
         $media->setCustomProperty('is_primary', true);
         $media->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function reorder(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (!empty($ids)) {
+            Media::setNewOrder($ids);
+        }
 
         return response()->json(['success' => true]);
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Inmoflow\PremiumGallery\Forms\Components;
+namespace KreativosPro\PremiumGallery\Forms\Components;
 
 use Filament\Forms\Components\FileUpload;
 use Illuminate\Database\Eloquent\Model;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Inmoflow\PremiumGallery;
+namespace KreativosPro\PremiumGallery;
 
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
@@ -21,7 +21,7 @@ class PremiumGalleryServiceProvider extends ServiceProvider
         // Register Assets
         FilamentAsset::register([
             Css::make('premium-gallery', __DIR__ . '/../resources/css/premium-gallery.css'),
-        ], 'inmoflow/premium-gallery');
+        ], 'kreativos-pro/premium-gallery');
 
         // Register Routes
         $this->registerRoutes();
