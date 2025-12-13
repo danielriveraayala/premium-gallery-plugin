@@ -2,6 +2,8 @@
 
 Un componente de galería de imágenes potente, personalizable y fácil de usar para Filament PHP 4.x/3.x.
 
+![Premium Gallery Screenshot](screenshot.png)
+
 ## Características
 
 - 🖼️ **Interfaz Premium**: Diseño de cuadrícula moderno usando los tokens de diseño estándar de Filament.
