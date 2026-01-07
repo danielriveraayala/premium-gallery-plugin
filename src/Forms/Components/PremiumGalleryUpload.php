@@ -86,13 +86,23 @@ class PremiumGalleryUpload extends FileUpload
                 }
 
                 if (!$finalPath) {
-                    // Debug: Show why we failed
-                    dd("DEBUG: File Not Found (Extensive Search)", [
+                    // Debug: Show ALL files in storage/app to find where they are hiding
+                    $allFiles = [];
+                    $path = storage_path('app');
+                    if (is_dir($path)) {
+                        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
+                        foreach ($rii as $file) {
+                            if ($file->isDir()) {
+                                continue;
+                            }
+                            $allFiles[] = $file->getPathname();
+                        }
+                    }
+
+                    dd("DEBUG: Where are files?", [
                         'candidates_checked' => $candidates,
-                        'livewire_config_disk' => config('livewire.temporary_file_upload.disk'),
-                        'livewire_config_dir' => config('livewire.temporary_file_upload.directory'),
-                        'filesystem_default' => config('filesystems.default'),
-                        'storage_path' => storage_path(),
+                        'storage_root' => storage_path(),
+                        'all_files_found' => $allFiles,
                     ]);
                 }
 
