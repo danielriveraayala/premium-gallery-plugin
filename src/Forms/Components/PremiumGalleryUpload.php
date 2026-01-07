@@ -55,17 +55,20 @@ class PremiumGalleryUpload extends FileUpload
                 }
 
                 // Check if file exists before processing
-                if (!\Storage::disk($diskName)->exists($tempPath)) {
-                    // DEBUG: Stop execution to show where we looked
-                    dd("DEBUG: File not found!", [
-                        'looking_for' => $tempPath,
-                        'on_disk' => $diskName,
-                        'disk_root' => config("filesystems.disks.{$diskName}.root"),
-                        'all_files_in_dir' => \Storage::disk($diskName)->allFiles(dirname($tempPath)),
-                    ]);
+                $path = $tempPath;
+
+                if (!\Storage::disk($diskName)->exists($path)) {
+                    // Try with configured directory prefix (usually 'livewire-tmp')
+                    $prefix = config('livewire.temporary_file_upload.directory') ?: 'livewire-tmp';
+                    if (\Storage::disk($diskName)->exists($prefix . '/' . $path)) {
+                        $path = $prefix . '/' . $path;
+                    } else {
+                        // File strictly not found, skip to avoid error
+                        continue;
+                    }
                 }
 
-                $record->addMediaFromDisk($tempPath, $diskName)
+                $record->addMediaFromDisk($path, $diskName)
                     ->toMediaCollection($collection);
             }
         });
