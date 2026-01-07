@@ -53,6 +53,11 @@ class PremiumGalleryUpload extends SpatieMediaLibraryFileUpload
         ]);
     }
 
+    public function getCollectionName(): string
+    {
+        return $this->getCollection() ?? 'default';
+    }
+
     public function getExistingMedia(): array
     {
         $record = $this->getRecord();
