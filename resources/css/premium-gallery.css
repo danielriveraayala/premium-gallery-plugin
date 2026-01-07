@@ -37,112 +37,68 @@
 }
 
 /* ====== UPLOAD ZONE ====== */
+/* ====== UPLOAD ZONE ====== */
 .pg-upload-zone {
-    border: 3px dashed var(--pg-gray-300);
-    border-radius: 20px;
-    padding: 3.5rem 2rem;
+    border: 2px dashed var(--pg-gray-300);
+    border-radius: 12px;
+    padding: 1rem;
     text-align: center;
-    background: linear-gradient(135deg, var(--pg-gray-50) 0%, #ffffff 100%);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--pg-gray-50);
+    transition: all 0.3s ease;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
-}
-
-.pg-upload-zone::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    background: linear-gradient(135deg, var(--pg-primary), var(--pg-primary-light));
-    border-radius: 20px;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    z-index: -1;
+    cursor: pointer;
 }
 
 .pg-upload-zone:hover,
 .pg-upload-zone.pg-drag-active {
     border-color: var(--pg-primary);
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    transform: scale(1.02);
-}
-
-.pg-upload-zone.pg-drag-active::before {
-    opacity: 0.1;
+    background: #fef3c7;
 }
 
 .pg-upload-content {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 1.25rem;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--pg-gray-600);
 }
 
 .pg-upload-icon {
-    width: 72px;
-    height: 72px;
+    width: 32px;
+    height: 32px;
     color: var(--pg-primary);
-    filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.2));
+    flex-shrink: 0;
 }
 
 .pg-upload-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--pg-gray-900);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--pg-gray-700);
     margin: 0;
-    letter-spacing: -0.02em;
 }
 
 .pg-upload-subtitle {
-    font-size: 1rem;
-    color: #6b7280;
-    margin: 0;
+    display: none;
 }
 
 .pg-btn-upload {
-    margin-top: 0.75rem;
-    padding: 0.875rem 2.5rem;
-    background: linear-gradient(135deg, var(--pg-primary), var(--pg-primary-light));
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.pg-btn-upload:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(245, 158, 11, 0.45);
-}
-
-.pg-btn-upload:active {
-    transform: translateY(-1px);
-}
-
-.pg-btn-icon {
-    width: 20px;
-    height: 20px;
+    display: none;
 }
 
 .pg-upload-hint {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: #9ca3af;
-    margin-top: 0.75rem;
+    margin: 0;
+    margin-left: auto; /* Push to right */
     display: flex;
-    align-items: center;
     gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
 }
 
 .pg-hint-item {
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .pg-hint-separator {
