@@ -2,86 +2,54 @@
 
 namespace KreativosPro\PremiumGallery\Forms\Components;
 
-use Filament\Forms\Components\FileUpload;
-use Illuminate\Database\Eloquent\Model;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Actions\Action;
 
-class PremiumGalleryUpload extends FileUpload
+class PremiumGalleryUpload extends SpatieMediaLibraryFileUpload
 {
-    // Updated view path for plugin
     protected string $view = 'premium-gallery::premium-gallery-upload';
-
-    protected string|null $collectionName = null;
-
-    public function collection(string $collectionName): static
-    {
-        $this->collectionName = $collectionName;
-        return $this;
-    }
-
-    public function getCollectionName(): string
-    {
-        return $this->collectionName ?? $this->getName();
-    }
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Configure as a generic uploader
+        // Default configuration
         $this->disk('public');
-        $this->directory('temp-gallery-uploads');
-        $this->multiple();
         $this->image();
-
-        // Hide default field label
+        $this->multiple();
+        $this->imageEditor();
         $this->hiddenLabel();
 
-        // Manual handling of persistence
-        $this->dehydrated(false);
-
-        $this->saveRelationshipsUsing(function (PremiumGalleryUpload $component, Model $record, $state) {
-            if (empty($state))
-                return;
-
-            $collection = $component->getCollectionName();
-
-            foreach ($state as $tempPath) {
-                if (\Storage::disk('public')->exists($tempPath)) {
-                    $record->addMediaFromDisk($tempPath, 'public')
-                        ->toMediaCollection($collection);
-                }
-            }
-        });
-
+        // Register actions for the custom view
         $this->registerActions([
             Action::make('deleteMedia')
                 ->action(function ($component, $arguments) {
                     $mediaId = $arguments['mediaId'] ?? null;
                     if ($mediaId) {
-                        \Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId)?->delete();
+                        $component->getRecord()->media()->find($mediaId)?->delete();
                     }
                 }),
             Action::make('setPrimary')
                 ->action(function ($component, $arguments) {
                     $mediaId = $arguments['mediaId'] ?? null;
                     if ($mediaId) {
-                        $media = \Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId);
+                        $record = $component->getRecord();
+                        $media = $record->media()->find($mediaId);
+
                         if ($media) {
-                            \Spatie\MediaLibrary\MediaCollections\Models\Media::where('model_type', $media->model_type)
-                                ->where('model_id', $media->model_id)
+                            // Reset others in the same collection
+                            $record->media()
                                 ->where('collection_name', $media->collection_name)
                                 ->each(function ($m) {
-                                    $m->setCustomProperty('is_primary', false);
-                                    $m->save();
-                                });
+                                $m->setCustomProperty('is_primary', false);
+                                $m->save();
+                            });
 
                             $media->setCustomProperty('is_primary', true);
                             $media->save();
                         }
                     }
                 }),
-
         ]);
     }
 
@@ -93,7 +61,9 @@ class PremiumGalleryUpload extends FileUpload
             return [];
         }
 
-        $media = $record->getMedia($this->getCollectionName());
+        // Use the method from Spatie component to get collection name
+        $collectionName = $this->getCollectionName();
+        $media = $record->getMedia($collectionName);
 
         return $media->map(function ($item) {
             return [
