@@ -2,25 +2,70 @@
 
 namespace KreativosPro\PremiumGallery\Forms\Components;
 
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\FileUpload;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Actions\Action;
 
-class PremiumGalleryUpload extends SpatieMediaLibraryFileUpload
+class PremiumGalleryUpload extends FileUpload
 {
     protected string $view = 'premium-gallery::premium-gallery-upload';
+
+    protected string|null $collectionName = null;
+
+    public function collection(string $collectionName): static
+    {
+        $this->collectionName = $collectionName;
+        return $this;
+    }
+
+    public function getCollectionName(): string
+    {
+        return $this->collectionName ?? $this->getName();
+    }
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Default configuration
-        $this->disk('public');
+        // Standard Filament FileUpload configuration
+        $this->disk('public'); // Destination disk for final files (optional, SML handles this usually)
         $this->image();
         $this->multiple();
         $this->imageEditor();
         $this->hiddenLabel();
 
-        // Register actions for the custom view
+        // IMPORTANT: We handle persistence manually to bridge the custom view + SML
+        $this->dehydrated(false);
+
+        $this->saveRelationshipsUsing(function (PremiumGalleryUpload $component, Model $record, $state) {
+            if (empty($state))
+                return;
+
+            $collection = $component->getCollectionName();
+
+            // Filament stores temp files in the configured temp disk (usually 'local' or 'public')
+            // valid for default setup:
+            foreach ($state as $tempPath) {
+                // Try to find the file. Filament usually stores temp files in 'livewire-tmp' on 'local' or 'public'
+                // We'll check the default disk first.
+
+                // Note: $tempPath comes from Livewire and is relative to the temp disk root.
+                // We simply pass it to Spatie.
+
+                try {
+                    // Check if it's strictly a new file path (not a UUID of an existing one)
+                    // Our view sends paths for new files.
+                    if (!\Spatie\MediaLibrary\MediaCollections\Models\Media::where('uuid', $tempPath)->exists()) {
+                        $record->addMediaFromDisk($tempPath, config('livewire.temporary_file_upload.disk') ?: 'local')
+                            ->toMediaCollection($collection);
+                    }
+                } catch (\Exception $e) {
+                    // Log error or ignore if file not found
+                    \Log::error("Gallery Upload Error: " . $e->getMessage());
+                }
+            }
+        });
+
         $this->registerActions([
             Action::make('deleteMedia')
                 ->action(function ($component, $arguments) {
@@ -37,13 +82,12 @@ class PremiumGalleryUpload extends SpatieMediaLibraryFileUpload
                         $media = $record->media()->find($mediaId);
 
                         if ($media) {
-                            // Reset others in the same collection
                             $record->media()
                                 ->where('collection_name', $media->collection_name)
                                 ->each(function ($m) {
-                                $m->setCustomProperty('is_primary', false);
-                                $m->save();
-                            });
+                                    $m->setCustomProperty('is_primary', false);
+                                    $m->save();
+                                });
 
                             $media->setCustomProperty('is_primary', true);
                             $media->save();
@@ -51,11 +95,6 @@ class PremiumGalleryUpload extends SpatieMediaLibraryFileUpload
                     }
                 }),
         ]);
-    }
-
-    public function getCollectionName(): string
-    {
-        return $this->getCollection() ?? 'default';
     }
 
     public function getExistingMedia(): array
@@ -66,9 +105,7 @@ class PremiumGalleryUpload extends SpatieMediaLibraryFileUpload
             return [];
         }
 
-        // Use the method from Spatie component to get collection name
-        $collectionName = $this->getCollectionName();
-        $media = $record->getMedia($collectionName);
+        $media = $record->getMedia($this->getCollectionName());
 
         return $media->map(function ($item) {
             return [
