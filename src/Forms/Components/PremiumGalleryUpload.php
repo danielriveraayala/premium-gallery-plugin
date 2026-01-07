@@ -54,23 +54,45 @@ class PremiumGalleryUpload extends FileUpload
                     continue;
                 }
 
-                // Construct absolute paths to check
-                $rootPath = \Storage::disk($diskName)->path($tempPath);
-                $tempDir = config('livewire.temporary_file_upload.directory') ?: 'livewire-tmp';
-                $prefixedPath = \Storage::disk($diskName)->path($tempDir . '/' . $tempPath);
+                // Extensive Path Search Strategy
+                $filename = $tempPath;
+                // $tempPath might be a path like 'livewire-tmp/xyz.jpg' or just 'xyz.jpg'
+                // We'll extract just the basename to be safe for our manual checks
+                $basename = basename($tempPath);
+
+                $candidates = [
+                    // 1. As reported by the disk (Standard)
+                    \Storage::disk($diskName)->path($tempPath),
+
+                    // 2. Prefixed on the disk (If input was just filename)
+                    \Storage::disk($diskName)->path((config('livewire.temporary_file_upload.directory') ?: 'livewire-tmp') . '/' . $basename),
+
+                    // 3. Fallback: storage/app/livewire-tmp (Legacy/Standard without 'private')
+                    storage_path('app/livewire-tmp/' . $basename),
+
+                    // 4. Fallback: storage/app/private/livewire-tmp (Explicit Private)
+                    storage_path('app/private/livewire-tmp/' . $basename),
+
+                    // 5. Fallback: storage/app/public/livewire-tmp (Public Disk Temp)
+                    storage_path('app/public/livewire-tmp/' . $basename),
+                ];
 
                 $finalPath = null;
+                foreach ($candidates as $candidate) {
+                    if (file_exists($candidate)) {
+                        $finalPath = $candidate;
+                        break;
+                    }
+                }
 
-                if (file_exists($rootPath)) {
-                    $finalPath = $rootPath;
-                } elseif (file_exists($prefixedPath)) {
-                    $finalPath = $prefixedPath;
-                } else {
-                    // Debugging: If file not found, interrupt to show paths checked
-                    dd("DEBUG: File not found (Absolute Check)", [
-                        'checked_root' => $rootPath,
-                        'checked_prefixed' => $prefixedPath,
-                        'disk_used' => $diskName
+                if (!$finalPath) {
+                    // Debug: Show why we failed
+                    dd("DEBUG: File Not Found (Extensive Search)", [
+                        'candidates_checked' => $candidates,
+                        'livewire_config_disk' => config('livewire.temporary_file_upload.disk'),
+                        'livewire_config_dir' => config('livewire.temporary_file_upload.directory'),
+                        'filesystem_default' => config('filesystems.default'),
+                        'storage_path' => storage_path(),
                     ]);
                 }
 
@@ -78,7 +100,8 @@ class PremiumGalleryUpload extends FileUpload
                     $record->addMedia($finalPath)
                         ->toMediaCollection($collection);
                 } catch (\Throwable $e) {
-                    dd("DEBUG: Error adding media", $e->getMessage(), $finalPath);
+                    // Start a new line log to avoid truncation
+                    dd("DEBUG: Error adding media", $e->getMessage(), ['final_path' => $finalPath]);
                 }
             }
         });
