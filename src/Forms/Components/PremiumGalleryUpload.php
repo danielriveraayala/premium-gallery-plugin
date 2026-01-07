@@ -34,6 +34,9 @@ class PremiumGalleryUpload extends FileUpload
         $this->multiple();
         $this->image();
 
+        // Hide default field label
+        $this->hiddenLabel();
+
         // Manual handling of persistence
         $this->dehydrated(false);
 
