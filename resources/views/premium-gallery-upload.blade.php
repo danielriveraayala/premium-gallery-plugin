@@ -31,15 +31,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <h3 class="pg-upload-title">Arrastra tus imágenes aquí</h3>
-                <p class="pg-upload-subtitle">o haz clic para seleccionar archivos</p>
-                <div class="pg-btn-upload">Seleccionar Archivos</div>
+                <h3 class="pg-upload-title">Arrastra tus imágenes aquí o haz clic</h3>
+
+                {{-- Compact Hint --}}
                 <p class="pg-upload-hint">
-                    <span class="pg-hint-item">JPG, PNG, WebP</span>
+                    <span class="pg-hint-item">Imágenes (JPG, PNG, WebP)</span>
                     <span class="pg-hint-divider">|</span>
-                    <span class="pg-hint-item">Máx. {{ $maxFiles }} imágenes</span>
-                    <span class="pg-hint-divider">|</span>
-                    <span class="pg-hint-item">Máx. {{ round($getMaxSize() / 1024) }}MB</span>
+                    <span class="pg-hint-item">Máx. {{ $maxFiles }}</span>
                 </p>
             </div>
         </div>
