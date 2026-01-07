@@ -86,7 +86,25 @@ class PremiumGalleryUpload extends FileUpload
                 }
 
                 if (!$finalPath) {
-                    // Debug: Show ALL files in storage/app to find where they are hiding
+                    // Last Resort: Recursive Search in storage/app
+                    $path = storage_path('app');
+                    if (is_dir($path)) {
+                        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
+                        foreach ($rii as $file) {
+                            if ($file->isDir())
+                                continue;
+
+                            // Check if this file is the one we want
+                            if ($file->getFilename() === $basename) {
+                                $finalPath = $file->getPathname();
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!$finalPath) {
+                    // Debug: Show ALL files in storage/app (only if we still fail)
                     $allFiles = [];
                     $path = storage_path('app');
                     if (is_dir($path)) {
