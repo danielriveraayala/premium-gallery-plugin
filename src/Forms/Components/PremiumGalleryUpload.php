@@ -46,23 +46,27 @@ class PremiumGalleryUpload extends FileUpload
             // Filament stores temp files in the configured temp disk (usually 'local' or 'public')
             // valid for default setup:
             foreach ($state as $tempPath) {
-                // Try to find the file. Filament usually stores temp files in 'livewire-tmp' on 'local' or 'public'
-                // We'll check the default disk first.
+                // Determine the disk Livewire is using for temps
+                $diskName = config('livewire.temporary_file_upload.disk') ?: 'local';
 
-                // Note: $tempPath comes from Livewire and is relative to the temp disk root.
-                // We simply pass it to Spatie.
-
-                try {
-                    // Check if it's strictly a new file path (not a UUID of an existing one)
-                    // Our view sends paths for new files.
-                    if (!\Spatie\MediaLibrary\MediaCollections\Models\Media::where('uuid', $tempPath)->exists()) {
-                        $record->addMediaFromDisk($tempPath, config('livewire.temporary_file_upload.disk') ?: 'local')
-                            ->toMediaCollection($collection);
-                    }
-                } catch (\Exception $e) {
-                    // Log error or ignore if file not found
-                    \Log::error("Gallery Upload Error: " . $e->getMessage());
+                // IGNORE existing media (UUIDs)
+                if (\Spatie\MediaLibrary\MediaCollections\Models\Media::where('uuid', $tempPath)->exists()) {
+                    continue;
                 }
+
+                // Check if file exists before processing
+                if (!\Storage::disk($diskName)->exists($tempPath)) {
+                    // DEBUG: Stop execution to show where we looked
+                    dd("DEBUG: File not found!", [
+                        'looking_for' => $tempPath,
+                        'on_disk' => $diskName,
+                        'disk_root' => config("filesystems.disks.{$diskName}.root"),
+                        'all_files_in_dir' => \Storage::disk($diskName)->allFiles(dirname($tempPath)),
+                    ]);
+                }
+
+                $record->addMediaFromDisk($tempPath, $diskName)
+                    ->toMediaCollection($collection);
             }
         });
 
