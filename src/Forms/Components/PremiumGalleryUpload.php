@@ -54,22 +54,32 @@ class PremiumGalleryUpload extends FileUpload
                     continue;
                 }
 
-                // Check if file exists before processing
-                $path = $tempPath;
+                // Construct absolute paths to check
+                $rootPath = \Storage::disk($diskName)->path($tempPath);
+                $tempDir = config('livewire.temporary_file_upload.directory') ?: 'livewire-tmp';
+                $prefixedPath = \Storage::disk($diskName)->path($tempDir . '/' . $tempPath);
 
-                if (!\Storage::disk($diskName)->exists($path)) {
-                    // Try with configured directory prefix (usually 'livewire-tmp')
-                    $prefix = config('livewire.temporary_file_upload.directory') ?: 'livewire-tmp';
-                    if (\Storage::disk($diskName)->exists($prefix . '/' . $path)) {
-                        $path = $prefix . '/' . $path;
-                    } else {
-                        // File strictly not found, skip to avoid error
-                        continue;
-                    }
+                $finalPath = null;
+
+                if (file_exists($rootPath)) {
+                    $finalPath = $rootPath;
+                } elseif (file_exists($prefixedPath)) {
+                    $finalPath = $prefixedPath;
+                } else {
+                    // Debugging: If file not found, interrupt to show paths checked
+                    dd("DEBUG: File not found (Absolute Check)", [
+                        'checked_root' => $rootPath,
+                        'checked_prefixed' => $prefixedPath,
+                        'disk_used' => $diskName
+                    ]);
                 }
 
-                $record->addMediaFromDisk($path, $diskName)
-                    ->toMediaCollection($collection);
+                try {
+                    $record->addMedia($finalPath)
+                        ->toMediaCollection($collection);
+                } catch (\Throwable $e) {
+                    dd("DEBUG: Error adding media", $e->getMessage(), $finalPath);
+                }
             }
         });
 
