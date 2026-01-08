@@ -104,32 +104,16 @@ class PremiumGalleryUpload extends FileUpload
                 }
 
                 if (!$finalPath) {
-                    // Debug: Show ALL files in storage/app (only if we still fail)
-                    $allFiles = [];
-                    $path = storage_path('app');
-                    if (is_dir($path)) {
-                        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
-                        foreach ($rii as $file) {
-                            if ($file->isDir()) {
-                                continue;
-                            }
-                            $allFiles[] = $file->getPathname();
-                        }
-                    }
-
-                    dd("DEBUG: Where are files?", [
-                        'candidates_checked' => $candidates,
-                        'storage_root' => storage_path(),
-                        'all_files_found' => $allFiles,
-                    ]);
+                    \Illuminate\Support\Facades\Log::error("PremiumGalleryUpload: File not found for upload", ['candidates' => $candidates ?? [], 'state' => $state]);
+                    return;
                 }
 
                 try {
                     $record->addMedia($finalPath)
+                        ->preservingOriginal()
                         ->toMediaCollection($collection);
                 } catch (\Throwable $e) {
-                    // Start a new line log to avoid truncation
-                    dd("DEBUG: Error adding media", $e->getMessage(), ['final_path' => $finalPath]);
+                    \Illuminate\Support\Facades\Log::error("Error adding media: " . $e->getMessage(), ['final_path' => $finalPath]);
                 }
             }
         });
